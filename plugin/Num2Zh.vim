@@ -4,11 +4,55 @@ if exists("g:loaded_NaturalLanguageNumberTranslatorNum2Zh_plugin")
 endif
 let g:loaded_NaturalLanguageNumberTranslatorNum2Zh_plugin = 1
 
+function! GetUserChoice()
+    let prompt = "Please enter 'l' or 'L' for lowercase, 'u' or 'U' for uppercase, press 'Esc' to exit,  press 'Enter' for default ('l'): "
+    let warning = ""
+    while 1
+        " Prompt the user for input
+        echo warning . prompt
+        let char = getchar()
+        let typedChar = nr2char(char)
+        let result = ""
+        " Check the user input
+        if typedChar =~? 'l'
+            let result = 'l'
+            break
+        elseif typedChar =~? 'u'
+            let result = 'u'
+            break
+        elseif char == 27 " 27 is the ASCII code for the Esc key
+            let result = v:null
+            break
+        elseif char == 13 " 13 is the ASCII code for Enter key
+            let result = 'l' " Default to 'l' if Enter is pressed
+            break
+        else
+            let warning = "Invalid input charactor: '" . typedChar . "'. "
+        endif
+    endwhile
+    echo ""
+    return result
+endfunction
+
 function! s:TranslateNum2ZhOperator(type)
     " 保存原始光标位置
     let save_cursor = getpos('.')
     " 备份寄存器t
     let t_save = @t
+
+    " 使用 GetUserChoice 函数的返回值来决定接下来的行为
+    let choice = GetUserChoice()
+    let caseStyle = 'lower'
+    if choice == 'l'
+        " 在这里添加处理小写的代码
+        let caseStyle = 'lower'
+    elseif choice == 'u'
+        " 在这里添加处理大写的代码
+        let caseStyle = 'upper'
+    else
+        " 默认/错误处理
+        return
+    endif
 
     " 如果是block模式，则特别处理
     if a:type == "\<C-V>"
@@ -22,7 +66,7 @@ function! s:TranslateNum2ZhOperator(type)
             " 将行文本转换为UTF-8编码
             let line_utf8 = iconv(line, &encoding, 'UTF-8')
             let selectedText = line_utf8[column_start - 1: column_end - 1]
-            let translatedText = substitute(selectedText, Num2Zh#getNumberPattern(), '\=Num2Zh#Translator(submatch(0))', 'g')
+            let translatedText = substitute(selectedText, Num2Zh#getNumberPattern(), '\=Num2Zh#Translator(submatch(0), caseStyle)', 'g')
             let newLine = line[:column_start - 2] . translatedText . line[column_end:]
             call setline(line_num, newLine)
         endfor
@@ -43,7 +87,7 @@ function! s:TranslateNum2ZhOperator(type)
         let selectedText = iconv(@t, &encoding, 'UTF-8')
 
         " 转换文本
-        let translatedText = substitute(selectedText, Num2Zh#getNumberPattern(), '\=Num2Zh#Translator(submatch(0))', 'g')
+        let translatedText = substitute(selectedText, Num2Zh#getNumberPattern(), '\=Num2Zh#Translator(submatch(0), caseStyle)', 'g')
 
         " 替换原文本
         call setreg('"', translatedText)
@@ -55,7 +99,6 @@ function! s:TranslateNum2ZhOperator(type)
     " 恢复光标位置
     call setpos('.', save_cursor)
 endfunction
-
 
 " 为我们的操作符定义一个映射
 nnoremap <silent> <Plug>(TranslateNum2Zh) :set operatorfunc=<sid>TranslateNum2ZhOperator<CR>g@
