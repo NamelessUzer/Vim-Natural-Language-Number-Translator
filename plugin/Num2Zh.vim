@@ -78,7 +78,7 @@ endfunction
 " 定义一个 Vim 命令，命名为 TranslateNum2Zh
 " 这个命令接受一个参数：要转换的文本
 " 这个示例默认使用 'lower' 模式进行转换
-command! -nargs=? -range=% TranslateNum2ZhNum call s:TranslateNum2ZhNum(<q-args>)
+command! -nargs=? -range TranslateNum2ZhNum :<line1>,<line2>call s:TranslateNum2ZhNum(<q-args>)
 " 对小写风格
 nnoremap <silent> <Plug>(TranslateNum2ZhNumLower) :TranslateNum2ZhNum lower<CR>
 " 对大写风格
