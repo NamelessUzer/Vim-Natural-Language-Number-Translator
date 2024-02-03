@@ -17,7 +17,7 @@ You can install `Vim Natural Language Number Translator` using your favorite Vim
 Using [Vim-Plug](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'NamelessUzer/VimNaturalLanguageNumberTranslator'
+Plug 'NamelessUzer/Vim-Natural-Language-Number-Translator'
 ```
 
 ## Usage
