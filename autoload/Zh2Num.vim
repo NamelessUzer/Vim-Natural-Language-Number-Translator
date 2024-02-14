@@ -3,7 +3,7 @@ if exists("g:loaded_NaturalLanguageNumberTranslator")
 endif
 let g:loaded_NaturalLanguageNumberTranslator_plugin = 1
 
-let s:ZhNumPattern = '\v[〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖十拾百佰千仟万萬亿億两]+([点點][〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+)?|[〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+'
+let s:ZhNumPattern = '\v([〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖十拾百佰千仟万萬亿億两]+|[〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+)([点點][〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+)?'
 
 function! Zh2Num#getZhNumPattern()
   return s:ZhNumPattern
@@ -31,35 +31,36 @@ let s:cnUpper2LowerMap = {
 function! Zh2Num#Translator(zhNum)
     let l:zhNum = a:zhNum
     if match(l:zhNum, s:ZhNumPattern) == -1
-        throw "Invalid Zh Number: " . ZhNum
+      throw "Invalid Zh Number: " . l:ZhNum
     else
-        " 将大写中文数字转换为小写
-        for [l:upper, l:lower] in items(s:cnUpper2LowerMap)
-            let l:zhNum = substitute(l:zhNum, l:upper, l:lower, 'g')
-        endfor
+      " 将所有大写中文数字转换为小写
+      for [l:upper, l:lower] in items(s:cnUpper2LowerMap)
+          let l:zhNum = substitute(l:zhNum, l:upper, l:lower, 'g')
+      endfor
     endif
-    if match(l:zhNum, '^[〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]\+$') != -1
-        return join(map(split(l:zhNum, '\zs'), 'get(s:cnNumMap, v:val, v:val)'), '')
-    " if、elseif子句的顺序不能够调换，因为下方的正则不够精准，“一二三”也完全能够被下方的正则匹配到，但是显然不应该用下方的语句来处理。
-    elseif match(l:zhNum, '\v^[〇一二三四五六七八九十百千万亿两]+(点[〇一二三四五六七八九]+)?$') != -1
-        " 处理小数点
-        let l:parts = split(l:zhNum, '点')
-        let l:integerPart = l:parts[0]
-        let l:decimalPart = len(l:parts) > 1 ? l:parts[1] : ''
 
-        " 转换整数部分
-        " 特殊处理"十"开头的情况
-        let l:integerPart = substitute(l:integerPart, '\(\_^\|[亿万千百〇]\)\zs\ze十', '一', 'g')
-        " 上述替换放在此处而不是放在 s:ZhInteger2Num 内部的原因是避免递归调用时反复执行此替换，放在此处可以一次性替换，只需要执行一次
-        let l:integerDigits = s:ZhInteger2Num(l:integerPart)
+    " 分割整数部分和小数部分
+    let l:parts = split(l:zhNum, '点')
+    let l:intPart = l:parts[0]
+    let l:decPart = len(l:parts) > 1 ? l:parts[1] : ''
 
-        " 转换小数部分
-        if len(l:parts) > 1
-            let l:decimalDigits = join(map(split(l:decimalPart, '\zs'), 'get(s:cnNumMap, v:val, v:val)'), '')
-            return l:integerDigits . '.' . l:decimalDigits
-        else
-            return l:integerDigits
-        endif
+    " 检查整数部分是否为纯数字模式
+    if match(l:intPart, '\v^[〇一二三四五六七八九]+$') != -1
+        " 直接转换纯数字部分
+        let l:intDigits = join(map(split(l:intPart, '\zs'), 'get(s:cnNumMap, v:val, v:val)'), '')
+    else
+        " 处理包含单位的数字
+        " let l:intPart = substitute(l:intPart, '\v(^|[亿万千百〇])十', '\1一十', 'g')
+        let l:intPart = substitute(l:intPart, '\v(^|[亿万千百〇])\zs\ze十', '一', 'g')
+        let l:intDigits = s:ZhInteger2Num(l:intPart)
+    endif
+
+    " 处理小数部分
+    if l:decPart != ''
+        let l:decDigits = join(map(split(l:decPart, '\zs'), 'get(s:cnNumMap, v:val, v:val)'), '')
+        return l:intDigits . '.' . l:decDigits
+    else
+        return l:intDigits
     endif
 endfunction
 
