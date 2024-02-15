@@ -65,6 +65,9 @@ function! Zh2Num#Translator(zhNum)
 endfunction
 
 function! s:ZhInteger2Num(integerPart)
+    if a:integerPart == ''
+      return '0'
+    endif
     let l:integerPart = a:integerPart
     " 处理包含'亿'或'万'的数字
     for l:unit in ['亿', '万']
@@ -95,5 +98,5 @@ function! s:ZhInteger2Num(integerPart)
     " 移除前导0并处理特殊情况
     let l:resultStr = join(l:result, '')
     let l:resultStr = substitute(l:resultStr, '^0\+', '', '')
-    return l:resultStr != '' ? l:resultStr : '0'
+    return l:resultStr
 endfunction
