@@ -73,9 +73,7 @@ function! s:TranslateIntegerStr(integer)
   elseif integerLength > 4
     let result = s:TranslateIntegerStr(a:integer[:-5]) . "万" . s:TranslateIntegerStr(a:integer[-4:])
   else
-    let zerosNeeded = 4 - integerLength
-    let zeros = repeat("0", zerosNeeded)
-    let paddedInteger = zeros . a:integer
+    let paddedInteger = printf('%0*s', 4, a:integer)
     for i in range(4)
       let result .=  s:numMapUpper[paddedInteger[i:i]] . s:unitMap[3-i]
     endfor

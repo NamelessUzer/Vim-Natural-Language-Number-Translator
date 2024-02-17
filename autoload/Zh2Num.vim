@@ -77,8 +77,7 @@ function! s:ZhInteger2Num(integerPart)
             let l:rightPart = strpart(l:integerPart, l:pos + len(l:unit))
             let l:leftNum = s:ZhInteger2Num(l:leftPart)
             let l:rightNum = s:ZhInteger2Num(l:rightPart)
-            let l:padding = repeat('0', s:cnUnitMap[l:unit] - len(l:rightNum))
-            return l:leftNum . l:padding . l:rightNum
+            return printf('%s%0*s', l:leftNum, s:cnUnitMap[l:unit], l:rightNum)
         endif
     endfor
 
