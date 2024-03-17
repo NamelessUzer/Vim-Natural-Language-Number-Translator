@@ -1,8 +1,14 @@
 " Global dictionaries
-let s:numMapUpper = {'0': '零', '1': '壹', '2': '贰', '3': '叁', '4': '肆', '5': '伍', '6': '陆', '7': '柒', '8': '捌', '9': '玖'}
+let s:numMapUpper = {
+    \ '0'  : '零' , '1'  : '壹' , '2'  : '贰' , '3'  : '叁' , '4'  : '肆' , '5'  : '伍' , '6'  : '陆' , '7'  : '柒' , '8'  : '捌' , '9'  : '玖' ,
+    \ '０' : '零' , '１' : '壹' , '２' : '贰' , '３' : '叁' , '４' : '肆' , '５' : '伍' , '６' : '陆' , '７' : '柒' , '８' : '捌' , '９' : '玖'
+    \ }
 let s:unitMap = {0: '', 1: '拾', 2: '佰', 3: '仟'}
 
-let s:NumberPattern = '\v\d+(\.\d+)?'
+let s:digit = '[0-9０１２３４５６７８９]'
+let s:dot = '[．.]'
+let s:NumberPattern = '\v' . s:digit . '+' . '(' . s:dot . s:digit . '+' . ')?'
+let s:NumberFullMatchPattern = '^' . s:NumberPattern . '$'
 
 function! Num2Zh#getNumberPattern()
   return s:NumberPattern
@@ -10,21 +16,23 @@ endfunction
 
 " Updated main function to use the new structure
 function! Num2Zh#Translator(number, style = 'lower')
-  if a:number !~ '\v^\d+(\.\d+)?$'
+  if a:number !~ s:NumberFullMatchPattern
     return a:number
   endif
   let integerStr = ""
   let decimalStr = ""
-  if stridx(a:number, '.') >= 0
-    let [integerPart, decimalPart] = split(a:number, '\.')
-    for i in range(len(decimalPart))
-      let decimalStr .= s:numMapUpper[decimalPart[i:i]]
+  if a:number =~ s:dot
+    let [integerPart, decimalPart] = split(a:number, s:dot)
+    let decimalList = split(decimalPart, '\zs')
+    for i in range(len(decimalList))
+      let decimalStr .= s:numMapUpper[decimalList[i]]
     endfor
   else
     let integerPart = a:number
   endif
 
-  let integerStr = s:TranslateIntegerStr(integerPart)
+  let integerList = split(integerPart, '\zs')
+  let integerStr = s:TranslateIntegerList(integerList)
   while integerStr =~ '\(零[亿万仟佰拾]\)\+'
     let integerStr = substitute(integerStr, '\(零[仟佰拾]\?\)\+', '零', 'g')
     let integerStr = substitute(integerStr, '零\+\([亿万]\)', '\1零', 'g')
@@ -64,18 +72,20 @@ function! Num2Zh#Translator(number, style = 'lower')
   return result
 endfunction
 
-" Placeholder for TranslateInterStr function
-function! s:TranslateIntegerStr(integer)
+" Placeholder for TranslateInterList function
+function! s:TranslateIntegerList(integerList)
   let result = ""
-  let integerLength = len(a:integer)
+  let integerLength = len(a:integerList)
   if integerLength > 8
-    let result = s:TranslateIntegerStr(a:integer[:-9]) . "亿" . s:TranslateIntegerStr(a:integer[-8:])
+    let result = s:TranslateIntegerList(a:integerList[:-9]) . "亿" . s:TranslateIntegerList(a:integerList[-8:])
   elseif integerLength > 4
-    let result = s:TranslateIntegerStr(a:integer[:-5]) . "万" . s:TranslateIntegerStr(a:integer[-4:])
+    let result = s:TranslateIntegerList(a:integerList[:-5]) . "万" . s:TranslateIntegerList(a:integerList[-4:])
   else
-    let paddedInteger = printf('%0*s', 4, a:integer)
+    " let paddedInteger = printf('%0*s', 4, a:integer)
+    " 添加全角数字支持后，上述这一方便的方法不再可用
+    let l:integerList = repeat(['0'], (4-len(a:integerList))) + a:integerList
     for i in range(4)
-      let result .=  s:numMapUpper[paddedInteger[i:i]] . s:unitMap[3-i]
+      let result .=  s:numMapUpper[l:integerList[i]] . s:unitMap[3-i]
     endfor
   endif
   return result

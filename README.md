@@ -5,7 +5,7 @@
 ## Features
 
 - **Chinese Numerals to Digits**: Convert Chinese numeral text to its corresponding Arabic digits within any Vim buffer.
-- **Digits to Chinese Numerals**: Transform numeric digits into their Chinese numeral representation, with options for both traditional and simplified forms.
+- **Digits to Chinese Numerals**: Transform numeric digits, including full-width numerals(０１２３４５６７８９．), into their Chinese numeral representation, with options for both traditional and simplified forms.
 - **Extensible Architecture**: Designed from the ground up to be easily extendable to support additional languages and numeral systems.
 - **Range Selection**: Operate on selected text, the current line, or the entire document, providing flexible conversion options to fit your workflow.
 - **Customizable**: Offers configurations to set default behaviors, including numeral styles and target languages once more languages are supported.
