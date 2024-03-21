@@ -45,8 +45,8 @@ function! s:TranslateZh2NumOperator(type)
         let translatedText = substitute(selectedText, Zh2Num#getZhNumPattern(), '\=Zh2Num#Translator(submatch(0))', 'g')
 
         " 替换原文本
-        call setreg('"', translatedText)
-        normal! gv"0p
+        call setreg('t', translatedText)
+        normal! gv"tp
     endif
 
     " 恢复寄存器t

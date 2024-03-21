@@ -90,8 +90,8 @@ function! s:TranslateNum2ZhOperator(type)
         let translatedText = substitute(selectedText, Num2Zh#getNumberPattern(), '\=Num2Zh#Translator(submatch(0), caseStyle)', 'g')
 
         " 替换原文本
-        call setreg('"', translatedText)
-        normal! gv"0p
+        call setreg('t', translatedText)
+        normal! gv"tp
     endif
 
     " 恢复寄存器t
