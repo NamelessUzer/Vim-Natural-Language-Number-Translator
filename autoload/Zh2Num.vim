@@ -3,7 +3,16 @@ if exists("g:loaded_NaturalLanguageNumberTranslator")
 endif
 let g:loaded_NaturalLanguageNumberTranslator_plugin = 1
 
-let s:ZhNumPattern = '\v([〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖十拾百佰千仟万萬亿億两]+|[〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+)([点點][〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖]+)?'
+" 基本数字 + 特殊字符数字
+let s:numberOnly = '〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖两⼀⼆⼋'
+" 单位（包括十、百、千、万等），基本单位 + 特殊字符单位
+let s:unitOnly = '十百千万亿拾佰仟萬億⼗'
+" 数字及单位的组合
+let s:numAndUnit = s:numberOnly . s:unitOnly
+" 点
+let s:dot = '点點'
+" 完整的数字表达式（考虑整数部分和可能的小数部分）
+let s:ZhNumPattern = '\v([' . s:numAndUnit . ']+|[' . s:numberOnly . ']+)([' . s:dot . '][' . s:numberOnly . ']+)?'
 
 function! Zh2Num#getZhNumPattern()
   return s:ZhNumPattern
@@ -28,6 +37,13 @@ let s:cnUpper2LowerMap = {
             \ '貮': '二', '两': '二', '點': '点'
             \ }
 
+let s:cnNumVariant2StandardMap = {
+    \ '⼀': '一',
+    \ '⼆': '二',
+    \ '⼋': '八',
+    \ '⼗': '十'
+    \ }
+
 function! Zh2Num#Translator(zhNum)
     let l:zhNum = a:zhNum
     if match(l:zhNum, s:ZhNumPattern) == -1
@@ -36,6 +52,10 @@ function! Zh2Num#Translator(zhNum)
       " 将所有大写中文数字转换为小写
       for [l:upper, l:lower] in items(s:cnUpper2LowerMap)
           let l:zhNum = substitute(l:zhNum, l:upper, l:lower, 'g')
+      endfor
+      " 将所有表示数字的异体汉字转换为常见的汉字形式
+      for [l:variant, l:standard] in items(s:cnNumVariant2StandardMap)
+          let l:zhNum = substitute(l:zhNum, l:variant, l:standard, 'g')
       endfor
     endif
 
